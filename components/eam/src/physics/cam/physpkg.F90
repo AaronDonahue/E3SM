@@ -724,6 +724,7 @@ subroutine phys_init( phys_state, phys_tend, pbuf2d, cam_out )
     use rad_solar_var,      only: rad_solar_var_init
     use nudging,            only: Nudge_Model,nudging_init
     use output_aerocom_aie, only: output_aerocom_aie_init, do_aerocom_ind3
+    use cam_diagnostics,    only: physics_state_addfld  !AaronDonahue added
 
 
     ! Input/output arguments
@@ -911,6 +912,9 @@ subroutine phys_init( phys_state, phys_tend, pbuf2d, cam_out )
     
    !BSINGH -  addfld and adddefault calls for perturb growth testing    
     if(pergro_test_active)call add_fld_default_calls()
+
+   !AaronDonahue - add physics state outputs for start of timestep:
+   call physics_state_addfld("physics_input") 
 
 end subroutine phys_init
 
@@ -1904,6 +1908,7 @@ subroutine tphysbc (ztodt,               &
     use subcol_utils,    only: subcol_ptend_copy, is_subcol_on
     use phys_control,    only: use_qqflx_fixer, use_mass_borrower
     use nudging,         only: Nudge_Model,Nudge_Loc_PhysOut,nudging_calc_tend
+    use cam_diagnostics, only: physics_state_outfld  !AaronDonahue added
 
     implicit none
 
@@ -2102,6 +2107,9 @@ subroutine tphysbc (ztodt,               &
           call outfld( trim(adjustl(varname)),get_var(state,vsuffix), pcols , lchnk )
        enddo
     endif
+
+    !AaronDonahue added
+   call physics_state_outfld(state,"physics_input") 
 
     static_ener_ac_idx = pbuf_get_index('static_ener_ac')
     call pbuf_get_field(pbuf, static_ener_ac_idx, static_ener_ac_2d )

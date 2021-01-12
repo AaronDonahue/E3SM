@@ -44,6 +44,8 @@ public :: &
    diag_export,        &! output export state
    diag_physvar_ic,    &
    diag_readnl          ! read namelist options
+public :: physics_state_addfld ! Register the entire physics state with the cam history buffer
+public :: physics_state_outfld ! Write the entire physics state to the cam history buffer
 
 logical, public :: inithist_all = .false. ! Flag to indicate set of fields to be 
                                           ! included on IC file
@@ -2392,5 +2394,94 @@ end subroutine diag_phys_tend_writeout
    if ( cnst_cam_outfld(ixcldice) ) call outfld (bpcnst(ixcldice), state%q(1,1,ixcldice), pcols, lchnk)
 
    end subroutine diag_state_b4_phys_write
+!===============================================================================
+
+subroutine physics_state_addfld(location)
+    use cam_history,  only: addfld, horiz_only
+    use constituents, only: pcnst, cnst_name
+    implicit none
+    character(len=*)             :: location
+
+    integer :: m
+    ! 1D variables 
+    call addfld( trim(adjustl(location))//trim(adjustl("_ps       ")), horiz_only, 'A', 'units', " surface pressure", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_psdry    ")), horiz_only, 'A', 'units', " dry surface pressure", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_phis     ")), horiz_only, 'A', 'units', " surface geopotential", flag_xyfill=.true.)
+    ! 2D variables
+    call addfld( trim(adjustl(location))//trim(adjustl("_t        ")), (/'lev'/), 'A', 'units', " temperature (K)", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_u        ")), (/'lev'/), 'A', 'units', " zonal wind (m/s)", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_v        ")), (/'lev'/), 'A', 'units', " meridional wind (m/s)", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_s        ")), (/'lev'/), 'A', 'units', " dry static energy", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_omega    ")), (/'lev'/), 'A', 'units', " vertical pressure velocity (Pa/s) ", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_pmid     ")), (/'lev'/), 'A', 'units', " midpoint pressure (Pa) ", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_pmiddry  ")), (/'lev'/), 'A', 'units', " midpoint pressure dry (Pa) ", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_pdel     ")), (/'lev'/), 'A', 'units', " layer thickness (Pa)", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_pdeldry  ")), (/'lev'/), 'A', 'units', " layer thickness dry (Pa)", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_rpdel    ")), (/'lev'/), 'A', 'units', " reciprocal of layer thickness (Pa)", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_rpdeldry ")), (/'lev'/), 'A', 'units', " recipricol layer thickness dry (Pa)", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_lnpmid   ")), (/'lev'/), 'A', 'units', " ln(pmid)", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_lnpmiddry")), (/'lev'/), 'A', 'units', " log midpoint pressure dry (Pa) ", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_exner    ")), (/'lev'/), 'A', 'units', " inverse exner function w.r.t. surface pressure (ps/p)^(R/cp)", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_zm       ")), (/'lev'/), 'A', 'units', " geopotential height above surface at midpoints (m)", flag_xyfill=.true.)
+    ! 2D variables nlev+1
+    call addfld( trim(adjustl(location))//trim(adjustl("_pint     ")), (/'ilev'/), 'A', 'units', " interface pressure (Pa)", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_pintdry  ")), (/'ilev'/), 'A', 'units', " interface pressure dry (Pa) ", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_lnpint   ")), (/'ilev'/), 'A', 'units', " ln(pint)", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_lnpintdry")), (/'ilev'/), 'A', 'units', " log interface pressure dry (Pa) ", flag_xyfill=.true.)
+    call addfld( trim(adjustl(location))//trim(adjustl("_zi       ")), (/'ilev'/), 'A', 'units', " geopotential height above surface at interfaces (m)", flag_xyfill=.true.)
+    ! Tracers
+    do m=1,pcnst
+      call addfld( trim(adjustl(location))//"_"//trim(adjustl(cnst_name(m))), (/'lev'/), 'A', 'kg/kg', " constituent mixing ratio (kg/kg moist or dry air depending on type) for "//trim(adjustl(cnst_name(m))), flag_xyfill=.true.)
+    end do
+
+end subroutine physics_state_addfld
+ 
+!===============================================================================
+
+subroutine physics_state_outfld(phys_state,location)
+    use cam_history,  only: outfld
+    use constituents, only: pcnst, cnst_name
+    use ppgrid,       only: pcols
+    implicit none
+    type(physics_state), intent(in) :: phys_state
+    character(len=*),intent(in)     :: location
+
+    integer lchnk                              ! chunk identifier
+    integer :: m
+
+    lchnk = phys_state%lchnk
+
+    ! 1D variables 
+    call outfld( trim(adjustl(location))//trim(adjustl("_ps       ")), phys_state%ps       , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_psdry    ")), phys_state%psdry    , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_phis     ")), phys_state%phis     , pcols, lchnk ) 
+    ! 2D variables
+    call outfld( trim(adjustl(location))//trim(adjustl("_t        ")), phys_state%t        , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_u        ")), phys_state%u        , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_v        ")), phys_state%v        , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_s        ")), phys_state%s        , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_omega    ")), phys_state%omega    , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_pmid     ")), phys_state%pmid     , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_pmiddry  ")), phys_state%pmiddry  , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_pdel     ")), phys_state%pdel     , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_pdeldry  ")), phys_state%pdeldry  , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_rpdel    ")), phys_state%rpdel    , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_rpdeldry ")), phys_state%rpdeldry , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_lnpmid   ")), phys_state%lnpmid   , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_lnpmiddry")), phys_state%lnpmiddry, pcols, lchnk )
+    call outfld( trim(adjustl(location))//trim(adjustl("_exner    ")), phys_state%exner    , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_zm       ")), phys_state%zm       , pcols, lchnk ) 
+    ! 2D variables nlev+1
+    call outfld( trim(adjustl(location))//trim(adjustl("_pint     ")), phys_state%pint     , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_pintdry  ")), phys_state%pintdry  , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_lnpint   ")), phys_state%lnpint   , pcols, lchnk ) 
+    call outfld( trim(adjustl(location))//trim(adjustl("_lnpintdry")), phys_state%lnpintdry, pcols, lchnk )
+    call outfld( trim(adjustl(location))//trim(adjustl("_zi       ")), phys_state%zi       , pcols, lchnk ) 
+    ! Tracers
+    do m=1,pcnst
+      call outfld( trim(adjustl(location))//"_"//trim(adjustl(cnst_name(m))), phys_state%q(1,1,m), pcols, lchnk) 
+    end do
+
+end subroutine physics_state_outfld 
 
 end module cam_diagnostics
