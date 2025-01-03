@@ -1,7 +1,9 @@
-#ifndef SCREAM_TUTORIAL_HPP
-#define SCREAM_TUTORIAL_HPP
+#ifndef SCREAM_CLD_FRACTION_HPP
+#define SCREAM_CLD_FRACTION_HPP
 
+#include "physics/tutorial/tutorial_functions.hpp"
 #include "share/atm_process/atmosphere_process.hpp"
+#include "ekat/ekat_parameter_list.hpp"
 
 #include <string>
 
@@ -9,7 +11,7 @@ namespace scream
 {
 
 /*
- * The class object is part of the EAMxx Tutorial and is not intended for production runs.
+ * The class responsible to handle the calculation of the subgrid cloud fractions
  *
  * The AD should store exactly ONE instance of this class stored
  * in its list of subcomponents (the AD should make sure of this).
@@ -18,6 +20,7 @@ namespace scream
 class Tutorial : public AtmosphereProcess
 {
 public:
+  using TutorialFunc = tutorial::TutorialFunctions<Real, DefaultDevice>;
 
   // Constructors
   Tutorial (const ekat::Comm& comm, const ekat::ParameterList& params);
@@ -26,7 +29,7 @@ public:
   AtmosphereProcessType type () const { return AtmosphereProcessType::Physics; }
 
   // The name of the subcomponent
-  std::string name () const { return "atm. process for tutorial"; }
+  std::string name () const { return "tutorial"; }
 
   // Set the grid
   void set_grids (const std::shared_ptr<const GridsManager> grids_manager);
@@ -42,9 +45,12 @@ protected:
   Int m_num_cols; 
   Int m_num_levs;
 
+  // Parameters
+  Real m_scale;
+
   std::shared_ptr<const AbstractGrid> m_grid;
-}; // class CldFraction
+}; // class Tutorial
 
 } // namespace scream
 
-#endif // SCREAM_TUTORIAL_HPP
+#endif // SCREAM_CLD_FRACTION_HPP
