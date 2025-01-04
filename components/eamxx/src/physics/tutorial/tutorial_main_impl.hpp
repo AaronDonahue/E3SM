@@ -27,9 +27,9 @@ void TutorialFunctions<S,D>
   auto f_norm = KOKKOS_LAMBDA(const MemberType& team) {
     int m = team.league_rank();
     auto normalize = [&] (int n) {
-      Y(m,n) /= X(m,n);
+      Y(m,n) /= 1.0; //X(m,n);
     };
-    Kokkos::parallel_for(TeamVectorRange(team,nx),normalize);
+    Kokkos::parallel_for(TeamVectorRange(team,ny),normalize);
     team.team_barrier();
   };
 

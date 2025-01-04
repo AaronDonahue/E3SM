@@ -52,24 +52,28 @@ void Tutorial::set_grids(const std::shared_ptr<const GridsManager> grids_manager
 // =========================================================================================
 void Tutorial::initialize_impl (const RunType /* run_type */)
 {
-  auto T_prev = get_field_out("T_norm_prev").get_view<Real**>();
-  Kokkos::deep_copy(T_prev,1.0);
+  auto T_prev = get_field_out("T_norm_prev");
+  T_prev.deep_copy(1.0);
   // Set property checks for fields in this process
 }
 
 // =========================================================================================
 void Tutorial::run_impl (const double /* dt */)
 {
-  // Calculate ice cloud fraction and total cloud fraction given the liquid cloud fraction
-  // and the ice mass mixing ratio.
-  auto T_mid  = get_field_in("T_mid").get_view<const Real**>();
-  auto T_prev = get_field_out("T_norm_prev").get_view<Real**>();
-  auto T_norm = get_field_out("T_normalized").get_view<Real**>();
+  auto T_mid  = get_field_in("T_mid");
+  auto T_prev = get_field_out("T_norm_prev");
+  auto T_norm = get_field_out("T_normalized");
+  
+  auto T_mid_view  = T_mid.get_view<const Real**>();
+  auto T_prev_view = T_prev.get_view<Real**>();
+  auto T_norm_view = T_norm.get_view<Real**>();
 
-  Kokkos::deep_copy(T_norm,T_mid);
-  TutorialFunc::normalize(m_num_cols,m_num_levs,T_prev,T_norm); 
+  T_norm.deep_copy(T_mid);
+  T_norm.sync_to_dev();
+  TutorialFunc::normalize(m_num_cols,m_num_levs,T_prev_view,T_norm_view); 
+  T_norm.scale(m_scale);
 
-  Kokkos::deep_copy(T_prev,T_mid);
+  T_prev.deep_copy(T_mid);
 }
 
 // =========================================================================================

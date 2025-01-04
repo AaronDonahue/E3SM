@@ -1,5 +1,5 @@
-#ifndef SCREAM_CLD_FRACTION_HPP
-#define SCREAM_CLD_FRACTION_HPP
+#ifndef SCREAM_TUTORIAL_HPP
+#define SCREAM_TUTORIAL_HPP
 
 #include "physics/tutorial/tutorial_functions.hpp"
 #include "share/atm_process/atmosphere_process.hpp"
@@ -53,4 +53,4 @@ protected:
 
 } // namespace scream
 
-#endif // SCREAM_CLD_FRACTION_HPP
+#endif // SCREAM_TUTORIAL_HPP
