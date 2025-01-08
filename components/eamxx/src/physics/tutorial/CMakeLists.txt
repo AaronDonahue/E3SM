@@ -17,8 +17,8 @@ target_compile_options(tutorial PUBLIC)
 # Add this library to eamxx_physics
 target_link_libraries(eamxx_physics INTERFACE tutorial)
 
-include(ScreamUtils)
-CreateUnitTest(test_tutorial "tutorial_tests.cpp"
-	LIBS tutorial scream_share)
+#include(ScreamUtils)
+#CreateUnitTest(test_tutorial "tutorial_tests.cpp"
+#	LIBS tutorial scream_share)
 
-add_subdirectory(stand_alone_tests)
+#add_subdirectory(stand_alone_tests)

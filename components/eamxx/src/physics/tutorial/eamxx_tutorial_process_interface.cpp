@@ -69,7 +69,6 @@ void Tutorial::run_impl (const double /* dt */)
   auto T_norm_view = T_norm.get_view<Real**>();
 
   T_norm.deep_copy(T_mid);
-  T_norm.sync_to_dev();
   TutorialFunc::normalize(m_num_cols,m_num_levs,T_prev_view,T_norm_view); 
   T_norm.scale(m_scale);
 

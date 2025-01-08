@@ -51,6 +51,7 @@
 namespace scream {
 
 inline void register_physics () {
+  printf("ASD register_physics...\n");
   auto& proc_factory = AtmosphereProcessFactory::instance();
 #ifdef EAMXX_HAS_P3
   proc_factory.register_product("p3",&create_atmosphere_process<P3Microphysics>);
@@ -92,11 +93,13 @@ inline void register_physics () {
   proc_factory.register_product("iop_forcing",&create_atmosphere_process<IOPForcing>);
 #endif
 #ifdef EAMXX_HAS_TUTORIAL
+  printf("ASD EAMxx has tutorial is TRUE!!!!\n");
   proc_factory.register_product("tutorial",&create_atmosphere_process<Tutorial>);
 #endif
 
   // If no physics was enabled, silence compile warning about unused var
   (void) proc_factory;
+  printf("ASD register_physics...DONE\n");
 }
 
 } // namespace scream

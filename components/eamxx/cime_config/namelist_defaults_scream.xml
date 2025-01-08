@@ -264,6 +264,11 @@ be lost if SCREAM_HACK_XML is not enabled.
     <drydep_remap_file hgrid="ne1024np4.pg2">${DIN_LOC_ROOT}/atm/scream/maps/map_ne30pg2_to_ne1024pg2_20231201.nc</drydep_remap_file>
     </mam4_drydep>
 
+    <!-- Tutorial -->
+    <tutorial inherit="atm_proc_base">
+      <scaling_value type="real" doc="Factor to scale the normalized values by">1.0</scaling_value> 
+    </tutorial>
+
     <!-- CLD fraction -->
     <cldFraction inherit="atm_proc_base"/>
 
